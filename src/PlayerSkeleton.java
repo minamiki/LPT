@@ -7,10 +7,10 @@ public class PlayerSkeleton {
 	
 	// weight vector determines how much a heuristic should contribute to the utility
 	float[] w = { 
-					-1.0f, 	// punish for height of block
-					1.0f, 	// for contact area
-					-4.0f,  // punish for gaps
-					1.0f 	// reward for clearing lines
+					-2.0f, 	// punish for height of block
+					1.0f, 	// reward for contact area
+					-3.0f,  // punish for gaps
+					2.0f 	// reward for clearing lines
 				};
 
 	//implement this function to have a working system
@@ -51,10 +51,14 @@ public class PlayerSkeleton {
 		float score = 0;
 		// add heuristics computation like this here
 		// we favor filling lower positions
-		score += w[0] * computeHeightScore(s, move);
-		score += w[1] * computeContactAreaScore(s, move);
-		score += w[2] * computeGapScore(s, move);
-		score += w[3] * computeCompletedRowsScore(s, move);
+		float heightScore = computeHeightScore(s, move);
+		float contactAreaScore = computeContactAreaScore(s, move);
+		float gapScore = computeGapScore(s, move);
+		float completeRowsScore = computeCompletedRowsScore(s, move);
+		score += w[0] * heightScore;
+		score += w[1] * contactAreaScore;
+		score += w[2] * gapScore;
+		score += w[3] * completeRowsScore;
 		return score;
 	}
 	
@@ -84,6 +88,41 @@ public class PlayerSkeleton {
 	// more contact is better, bottom contact is better than left/right contact
 	{
 		float score = 0;
+		int nextPiece = s.getNextPiece();
+		int orient = move[0];
+		int slot = move[1]; 
+		int height = s.getTop()[slot] - State.getpBottom()[nextPiece][orient][0];
+		for(int c = 1; c < State.getpWidth()[nextPiece][orient];c++) {
+			height = Math.max(height, s.getTop()[slot+c] - State.getpBottom()[nextPiece][orient][c]);
+		}
+		int [][] field = s.getField();
+		for(int i = 0; i < State.getpWidth()[nextPiece][orient]; i++) {
+			for(int h = height+State.getpBottom()[nextPiece][orient][i]; h < height+State.getpTop()[nextPiece][orient][i]; h++) {
+				if (h >= State.ROWS) break;
+				int left = i - 1 + slot;
+				int right = i + 1 + slot;
+				int down = h - 1;
+				if (left >= 0)
+				{
+					if (field[h][left] != 0)
+						score += 1;
+				}
+				else
+					score += 1;
+				if (right < State.COLS)
+				{
+					if (field[h][right] != 0)
+						score += 1;
+				}
+				else
+					score += 1;
+				if (down >= 0)
+				{
+					if (field[down][i+slot] != 0)
+						score += 1;
+				}
+			}
+		}
 		return score;
 	}
 	
@@ -116,6 +155,7 @@ public class PlayerSkeleton {
 	}
 	
 	public float computeCompletedRowsScore(State s, int[] move)
+	//give a score based on number of completed rows
 	{
 		float score = 0;
 		int nextPiece = s.getNextPiece();
@@ -189,7 +229,7 @@ public class PlayerSkeleton {
 			s.draw();
 			s.drawNext(0,0);
 			try {
-				Thread.sleep(300);
+				Thread.sleep(30);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
