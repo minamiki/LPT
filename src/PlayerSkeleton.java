@@ -6,12 +6,12 @@ public class PlayerSkeleton {
 	Random rnd = new Random();
 	
 	// weight vector determines how much a heuristic should contribute to the utility
-	float[] w = { 
-					-2.0f, 	// punish for height of block
-					1.0f, 	// reward for contact area
-					-3.0f,  // punish for gaps
-					2.0f 	// reward for clearing lines
-				};
+	public float[] w = {
+							-1.0f, 	// punish for height of block
+							1.187f, 	// reward for contact area
+							-1.450f,  // punish for gaps
+							0.665f 	// reward for clearing lines
+						};
 
 	//implement this function to have a working system
 	public int[] pickMove(State s, int[][] legalMoves) 
@@ -221,20 +221,74 @@ public class PlayerSkeleton {
 	}
 	
 	public static void main(String[] args) {
-		State s = new State();
-		new TFrame(s);
-		PlayerSkeleton p = new PlayerSkeleton();
-		while(!s.hasLost()) {
-			s.makeMove(p.pickMove(s,s.legalMoves()));
-			s.draw();
-			s.drawNext(0,0);
-			try {
-				Thread.sleep(30);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		Random rnd = new Random();
+		int lastCleared = 0;
+		int bestCleared = 0;
+		float[] bestw = {};
+		float[] lastw = {};
+		int counter = 0;
+		float[] w = { -1.0f, 1.187f, -1.450f, 0.665f };
+		for (int i = 0; i < 25; i++)
+		{
+			State s = new State();
+			new TFrame(s);
+			PlayerSkeleton p = new PlayerSkeleton();
+			
+			p.w = w;
+			
+			while(!s.hasLost()) {
+				s.makeMove(p.pickMove(s,s.legalMoves()));
+				s.draw();
+				s.drawNext(0,0);
+				try {
+					Thread.sleep(0);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
+			
+			System.out.println(i + ". You have completed "+s.getRowsCleared()+" rows. " + 
+					String.format("w0:%.3f, w1:%.3f, w2:%.3f, w3:%.3f", w[0], w[1], w[2], w[3]));
+			
+//			if (s.getRowsCleared() > bestCleared)
+//			{
+//				bestCleared = s.getRowsCleared();
+//				bestw = p.w;
+//				int swap = rnd.nextInt(w.length);
+//				for (int j = 0; j < swap; j++)
+//				{
+//					float noise = 2 * rnd.nextFloat() - 1.0f;
+//					w[j] = (p.w[j] + w[j]) / 2 + (0.5f * noise);
+//				}
+//			}
+//			else if (s.getRowsCleared() > lastCleared)
+//			{
+//				lastCleared = s.getRowsCleared();
+//				lastw = p.w;
+//				int swap = rnd.nextInt(w.length);
+//				for (int j = 0; j < swap; j++)
+//				{
+//					float noise = 2 * rnd.nextFloat() - 1.0f;
+//					w[j] = (p.w[j] + w[j]) / 2 + (0.5f * noise);
+//				}
+//			}
+//			else
+//			{
+//				counter += 1;
+//				w = lastw;
+//				for (int j = 0; j < w.length; j++)
+//				{
+//					float noise = 2 * rnd.nextFloat() - 1.0f;
+//					w[j] = (p.w[j] + w[j]) / 2 + (0.5f * noise);
+//				}
+//				if (counter >= 5 && lastCleared < bestCleared)
+//				{
+//					counter = 0;
+//					w = bestw;
+//				}
+//			}
 		}
-		System.out.println("You have completed "+s.getRowsCleared()+" rows.");
+//		System.out.println("You have completed BEST "+bestCleared+" rows. " + 
+//				String.format("w0:%.3f, w1:%.3f, w2:%.3f, w3:%.3f", bestw[0], bestw[1], bestw[2], bestw[3]));
 	}
-	
 }
